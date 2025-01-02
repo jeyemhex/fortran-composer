@@ -60,7 +60,7 @@ contains
       f = f * 2 ** (iachar(this%pitch(3:3)) - iachar('1'))
 
     else if (this%pitch(2:2) == "#") then
-      f = f * 2.0_wp ** (-1.0_wp/12)
+      f = f * 2.0_wp ** (1.0_wp/12)
       f = f * 2 ** (iachar(this%pitch(3:3)) - iachar('1'))
 
     else

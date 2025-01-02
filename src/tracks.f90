@@ -18,7 +18,8 @@ module tracks
   type, public :: track_t
     character(len=64)     :: name
     character(len=64)     :: instrument_name
-    real(wp)              :: volume
+    real(wp)              :: decay  = 0.0_wp
+    real(wp)              :: volume = 1.0_wp
     real(wp), allocatable :: buffer(:)
     type(note_t), allocatable :: seq(:)
   contains
@@ -50,13 +51,13 @@ contains
 
     allocate(this%buffer(ceiling(params%length * params%sample_rate)))
 
+    this%buffer =  0
     do i_note = 1, size(this%seq)
       f = this%seq(i_note)%frequency()
-      print *, "Found note " // this%seq(i_note)%pitch // ", f = ", f
       t = 0
       i = nint(this%seq(i_note)%on * params%sample_rate / (params%tempo/60))
       do while (t <= this%seq(i_note)%length/(params%tempo/60))
-        this%buffer(i) = this%seq(i_note)%velocity * sin(2*pi*f*t) * exp(-t)
+        this%buffer(i) = this%buffer(i) + this%seq(i_note)%velocity * sin(2*pi*f*t) * exp(-this%decay *  t)
         i = i + 1
         t = t + 1.0_wp / params%sample_rate
       end do

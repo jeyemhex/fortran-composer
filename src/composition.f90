@@ -29,6 +29,7 @@ module composition
     procedure :: read_src => composition_read_src
     procedure :: mix => composition_mix
     procedure :: play => composition_play
+    procedure :: write_wav => composition_write_wav
   end type composition_t
 
 contains
@@ -69,7 +70,7 @@ contains
 
       ! Handle comments and whitespace
       line = adjustl(line)
-      i_char = index(line, "#")
+      i_char = index(line, "!")
       if (i_char > 0) line(i_char:) = " "
       if (len_trim(line) == 0) cycle
 
@@ -127,6 +128,10 @@ contains
               case("instrument")
                 if (.not. re_match("\w+", tokens(2))) error stop "Invalid instrument name"
                 this%tracks(i_track)%instrument_name = tokens(2)
+
+              case("decay")
+                if (.not. re_match("\d+ (\.\d+)?", tokens(2))) error stop "Invalid decay length"
+                read(tokens(2),*) this%tracks(i_track)%decay
 
               case("volume")
                 if (.not. re_match("\d+ (\. \d+)?", tokens(2))) error stop "Invalid volume"
@@ -225,5 +230,20 @@ contains
     close(audio)
 
   end subroutine composition_play
+
+  subroutine composition_write_wav(this)
+    class(composition_t), intent(inout) :: this
+
+    integer :: audio, raw_data, i
+
+    open(newunit=raw_data, file = ".tmp.raw", access = 'stream', action = 'write')
+    do i=1, size(this%buffer)
+      write(raw_data)  int(0.5_wp*huge(1_int16) * this%buffer(i), kind=int16)
+    end do
+    close(raw_data)
+
+    call execute_command_line("sox -r 44100 -e signed -b 16 -c 1 .tmp.raw " // trim(this%name) //".wav")
+    call execute_command_line("rm .tmp.raw")
+  end subroutine composition_write_wav
 
 end module composition

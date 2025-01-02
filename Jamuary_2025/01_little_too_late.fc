@@ -1,0 +1,62 @@
+! Day 1: It's late and I'm tired, but the code works...
+name: 01_little_too_late
+tempo: 78  ! BPM
+sample_rate: 44100 ! Hz
+
+length: 30 ! seconds
+
+num_tracks: 2
+
+track {
+  name: melody
+  instrument: sine
+  decay: 4.0
+  volume: 0.8
+
+  sequence {
+    num_notes: 11
+!   note on   length velocity
+    F#5  0.0  4.0    0.9
+    D5   1.0  3.0    0.7
+    A5   1.5  2.5    0.8
+
+    F#5  4.0  4.0    0.9
+    C#5  5.0  3.0    0.7
+    A5   5.5  2.5    0.8
+
+    G5   8.0  1.0    0.9
+    A5   8.25 3.0    0.7
+    B5   8.5  2.5    0.8
+
+    C#6  11.0 2.5    0.8
+
+    F#5  12.0 2.5    0.6
+  }
+}
+
+track {
+  name: Bass
+  instrument: sine
+  volume: 0.5
+  decay: 0.5
+
+  sequence {
+    num_notes: 11
+!   note on   length velocity
+    D4   0.0  4.0    0.8
+    A4   0.0  4.0    0.8
+    C#4  0.0  4.0    0.7
+
+    F#4  4.0  4.0    0.8
+    A4   4.0  4.0    0.8
+    C#4  4.0  4.0    0.7
+
+    D4   8.0  4.0    0.8
+    G4   8.0  4.0    0.8
+    B4   8.0  4.0    0.7
+
+    D4   12.0  4.0    0.8
+    A4   12.0  4.0    0.8
+
+  }
+}

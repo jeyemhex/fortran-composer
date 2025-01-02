@@ -26,6 +26,6 @@ program composer
   end do
 
   call composition%mix()
-  call composition%play()
+  call composition%write_wav()
 
 end program composer
