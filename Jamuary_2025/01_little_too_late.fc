@@ -9,9 +9,12 @@ num_tracks: 2
 
 track {
   name: melody
-  instrument: sine
-  decay: 4.0
   volume: 0.8
+
+  instrument {
+    type: sine
+    decay: 4.0
+  }
 
   sequence {
     num_notes: 11
@@ -36,9 +39,12 @@ track {
 
 track {
   name: Bass
-  instrument: sine
   volume: 0.5
-  decay: 0.5
+
+  instrument {
+    type: sine
+    decay: 0.5
+  }
 
   sequence {
     num_notes: 11

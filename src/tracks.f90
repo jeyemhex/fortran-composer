@@ -9,6 +9,7 @@ module tracks
 ! This code is distributed under the MIT license.
 !==============================================================================#
   use constants
+  use instruments
   use parameters
   use notes
   implicit none
@@ -17,11 +18,10 @@ module tracks
 
   type, public :: track_t
     character(len=64)     :: name
-    character(len=64)     :: instrument_name
-    real(wp)              :: decay  = 0.0_wp
     real(wp)              :: volume = 1.0_wp
     real(wp), allocatable :: buffer(:)
     type(note_t), allocatable :: seq(:)
+    class(instrument_t), allocatable :: instrument
   contains
     procedure :: dump => track_dump
     procedure :: generate => track_generate
@@ -34,7 +34,6 @@ contains
     integer :: i_note
 
     print *, "  Name: " // this%name
-    print *, "  Instrument: " // this%instrument_name
     print *, "  Volume: ", this%volume
 
     print *, "  Sequence:"
@@ -53,14 +52,7 @@ contains
 
     this%buffer =  0
     do i_note = 1, size(this%seq)
-      f = this%seq(i_note)%frequency()
-      t = 0
-      i = nint(this%seq(i_note)%on * params%sample_rate / (params%tempo/60))
-      do while (t <= this%seq(i_note)%length/(params%tempo/60))
-        this%buffer(i) = this%buffer(i) + this%seq(i_note)%velocity * sin(2*pi*f*t) * exp(-this%decay *  t)
-        i = i + 1
-        t = t + 1.0_wp / params%sample_rate
-      end do
+      call this%instrument%play(this%seq(i_note), this%buffer, params)
     end do
 
   end subroutine track_generate

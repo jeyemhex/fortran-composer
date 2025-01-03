@@ -15,6 +15,7 @@ module parameters
 
   type, public :: parameters_t
     character(len=64) :: src_file
+    character(len=16) :: mode = "write"
     real(wp)                 :: sample_rate = 44100
     real(wp)                 :: length 
     real(wp)                 :: tempo 
@@ -31,9 +32,11 @@ contains
     integer :: num_args
 
     num_args = command_argument_count()
-    if (num_args /= 1) error stop "Usage: `composer <src-file>`"
+    if (num_args < 1 .or. num_args > 2) error stop "Usage: `composer <src-file> [<mode>]`"
 
     call get_command_argument(1, this%src_file)
+
+    if (num_args == 2) call get_command_argument(2, this%mode)
 
   end subroutine parameters_init
 end module parameters

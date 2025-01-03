@@ -1,6 +1,6 @@
-program composer
+program compose
 !==============================================================================#
-! MAIN
+! COMPOSE
 !------------------------------------------------------------------------------#
 ! Author:  Ed Higgins <ed.j.higgins@gmail.com>
 !------------------------------------------------------------------------------#
@@ -26,6 +26,14 @@ program composer
   end do
 
   call composition%mix()
-  call composition%write_wav()
 
-end program composer
+  select case (params%mode)
+    case ("write")
+      call composition%write_wav()
+    case ("play")
+      call composition%play()
+    case default
+      error stop "Invalid composer mode"
+  end select
+
+end program compose

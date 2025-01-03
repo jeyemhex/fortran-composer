@@ -11,6 +11,10 @@ module composition
   use iso_fortran_env, only: int16
   use constants
   use parameters
+  use instruments
+  use sine_instrument
+  use saw_instrument
+  use square_instrument
   use tracks
   use regex
   implicit none
@@ -49,7 +53,7 @@ contains
     integer :: src, ios
     character(len=256) :: line
     integer :: i_char
-    character(len=8) :: mode(8)
+    character(len=16) :: mode(8)
     integer :: mode_head
     character(len=64), allocatable :: tokens(:)
     integer :: i_track, num_tracks
@@ -125,14 +129,6 @@ contains
                 if (.not. re_match("\w+", tokens(2))) error stop "Invalid track name"
                 this%tracks(i_track)%name = tokens(2)
 
-              case("instrument")
-                if (.not. re_match("\w+", tokens(2))) error stop "Invalid instrument name"
-                this%tracks(i_track)%instrument_name = tokens(2)
-
-              case("decay")
-                if (.not. re_match("\d+ (\.\d+)?", tokens(2))) error stop "Invalid decay length"
-                read(tokens(2),*) this%tracks(i_track)%decay
-
               case("volume")
                 if (.not. re_match("\d+ (\. \d+)?", tokens(2))) error stop "Invalid volume"
                 read(tokens(2), *) this%tracks(i_track)%volume
@@ -142,6 +138,10 @@ contains
             end select
 
           else if (re_match("sequence \s* {", line)) then
+            mode_head=mode_head+1
+            mode(mode_head) = re_match_str("\w+", line)
+
+          else if (re_match("instrument \s* {", line)) then
             mode_head=mode_head+1
             mode(mode_head) = re_match_str("\w+", line)
 
@@ -185,6 +185,47 @@ contains
             error stop "Unrecognised line in sequence"
           end if
 
+        case ("instrument")
+
+          if (re_match("\w \s* : .*", line)) then
+            call re_split("\s*:\s*", line, tokens)
+            select case (tokens(1))
+              case("type")
+                if (.not. re_match("\w+", tokens(2))) error stop "Invalid track name"
+                select case (tokens(2))
+                  case("sine")
+                    allocate(sine_instrument_t :: this%tracks(i_track)%instrument)
+
+                  case("square")
+                    allocate(square_instrument_t :: this%tracks(i_track)%instrument)
+
+                  case("saw")
+                    allocate(saw_instrument_t :: this%tracks(i_track)%instrument)
+
+                  case default
+                    error stop "Invalid instrument"
+                end select
+
+              case("decay")
+                if (.not. re_match("\d+ (\.\d+)?", tokens(2))) error stop "Invalid decay length"
+                read(tokens(2),*) this%tracks(i_track)%instrument%decay
+
+              case("attack")
+                if (.not. re_match("\d+ (\.\d+)?", tokens(2))) error stop "Invalid attack length"
+                read(tokens(2),*) this%tracks(i_track)%instrument%attack
+
+              case default
+                error stop "Invalid instrument parameter"
+            end select
+
+          else if (re_match("}", line)) then
+            mode(mode_head) = ""
+            mode_head=mode_head-1
+
+          else
+            error stop "Unrecognised line in track"
+          end if
+
         case default
           error stop "Invalid mode"
       end select
@@ -218,7 +259,7 @@ contains
 
     integer :: audio, i
 
-    call execute_command_line("rm /tmp/audio.pipe")
+    call execute_command_line("rm -f /tmp/audio.pipe")
     call execute_command_line("mkfifo /tmp/audio.pipe")
     call execute_command_line("aplay -r44100 -f S16_LE < /tmp/audio.pipe &")
 
