@@ -10,6 +10,7 @@ program compose
 !==============================================================================#
   use parameters
   use composition
+  use parser
   implicit none
 
   type(parameters_t)  :: params
@@ -18,8 +19,8 @@ program compose
   integer :: i
 
   call params%init()
-  call composition%init(params)
 
+  call parse_input(composition, params)
 
   do i = 1, size(composition%tracks)
     call composition%tracks(i)%generate(params)
