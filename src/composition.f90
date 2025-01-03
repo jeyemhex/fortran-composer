@@ -259,15 +259,17 @@ contains
 
     integer :: audio, i
 
-    call execute_command_line("rm -f /tmp/audio.pipe")
-    call execute_command_line("mkfifo /tmp/audio.pipe")
-    call execute_command_line("aplay -r44100 -f S16_LE < /tmp/audio.pipe &")
+    call execute_command_line("rm -f .tmp.raw")
 
-    open(newunit=audio, file = "/tmp/audio.pipe", access = 'stream', action = 'write')
+    open(newunit=audio, file = ".tmp.raw", access = 'stream', action = 'write')
 
     do i=1, size(this%buffer)
       write(audio)  int(0.5_wp*huge(1_int16) * this%buffer(i), kind=int16)
     end do
+
+    call execute_command_line("ffplay -loglevel quiet -autoexit -nodisp -ar 44100 -f s16le .tmp.raw")
+    call execute_command_line("rm -f .tmp.raw")
+
     close(audio)
 
   end subroutine composition_play
