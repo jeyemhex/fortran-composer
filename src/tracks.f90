@@ -48,7 +48,7 @@ contains
     integer :: i_note, i
     real(wp) :: f, t
 
-    allocate(this%buffer(ceiling(params%length * params%sample_rate)))
+    allocate(this%buffer(0:ceiling(params%length * params%sample_rate)))
 
     this%buffer =  0
     do i_note = 1, size(this%seq)

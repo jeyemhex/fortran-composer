@@ -31,6 +31,7 @@ module parser
   integer :: mode_head
   character(len=64), allocatable :: tokens(:)
   integer :: i_track, num_tracks
+  integer :: num_notes
 
 contains
 
@@ -45,7 +46,6 @@ contains
 
     num_tracks = 0
     i_track = 0
-    i_note = 0
     do
       ! Read the line in
       read(src,'(a)', iostat=ios) line
@@ -147,7 +147,12 @@ contains
           error stop "Invalid track parameter"
       end select
 
-    else if (re_match("(instrument | sequence) \s* {", line)) then
+    else if (re_match("instrument \s* {", line)) then
+      mode_head=mode_head+1
+      mode(mode_head) = re_match_str("\w+", line)
+
+    else if (re_match("sequence \s* {", line)) then
+      num_notes = 0
       mode_head=mode_head+1
       mode(mode_head) = re_match_str("\w+", line)
 
@@ -165,9 +170,6 @@ contains
     type(note_t), allocatable,  intent(inout) :: seq(:)
 
     type(note_t), allocatable :: tmp_seq(:)
-    integer :: i_note, num_notes
-
-    allocate(seq(4))
 
     if (re_match("\w \s* : .*", line)) then
       call re_split("\s*:\s*", line, tokens)
@@ -181,12 +183,22 @@ contains
 
     else if (re_match("\w+ (\s+ \d+(\.\d+)?)+", line)) then
       call re_split("\s+", line, tokens)
-      i_note=i_note+1
-      if (i_note > num_notes) error stop "Too many notes in sequence"
-      seq(i_note)%pitch = tokens(1)
-      read(tokens(2), *) seq(i_note)%on
-      read(tokens(3), *) seq(i_note)%length
-      read(tokens(4), *) seq(i_note)%velocity
+      num_notes=num_notes+1
+      if (allocated(seq)) then
+        allocate(tmp_seq(size(seq)))
+        tmp_seq = seq
+        deallocate(seq)
+        allocate(seq(num_notes))
+        seq(1:size(tmp_seq)) = tmp_seq
+        deallocate(tmp_seq)
+      else
+        allocate(seq(num_notes))
+      end if
+
+      seq(num_notes)%pitch = tokens(1)
+      read(tokens(2), *) seq(num_notes)%on
+      read(tokens(3), *) seq(num_notes)%length
+      read(tokens(4), *) seq(num_notes)%velocity
 
     else if (re_match("}", line)) then
       mode(mode_head) = ""

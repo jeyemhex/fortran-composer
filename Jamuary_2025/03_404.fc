@@ -1,0 +1,24 @@
+! Day 3: didn't even get the code working today
+name: 03_404
+tempo: 120  ! BPM
+sample_rate: 44100 ! Hz
+
+length: 2 ! seconds
+
+num_tracks: 1
+
+track {
+  name: error
+  volume: 0.8
+
+  instrument {
+    type: square
+    decay: 4.0
+  }
+
+  sequence {
+!   note on   length velocity
+    C4   0    0.5    1.0
+    F#3  0.5  0.5    1.0
+  }
+}
